@@ -39,19 +39,21 @@ public class PersistentStorage {
     
     public func getData<T:Decodable>(path: String, completionQueue: OperationQueue = OperationQueue.main, completion: @escaping ((T?) -> Void)) {
         let operation = StorageOperation.init(key: path) {
-            guard FileManager.default.fileExists(atPath: path),
-            let data = FileManager.default.contents(atPath: path) else {
-                completionQueue.addOperation {
-                    completion(nil)
+            autoreleasepool {
+                guard FileManager.default.fileExists(atPath: path),
+                let data = FileManager.default.contents(atPath: path) else {
+                    completionQueue.addOperation {
+                        completion(nil)
+                    }
+                    return;
                 }
-                return;
-            }
-            
-            let decoder = JSONDecoder()
-            let obj = try? decoder.decode(T.self, from: data)
-            
-            completionQueue.addOperation {
-                completion(obj)
+                
+                let decoder = JSONDecoder()
+                let obj = try? decoder.decode(T.self, from: data)
+                
+                completionQueue.addOperation {
+                    completion(obj)
+                }
             }
         }
         queue.addOperation(operation)
@@ -59,20 +61,60 @@ public class PersistentStorage {
     
     public func save<T:Encodable>(object: T, path: String, completionQueue: OperationQueue = OperationQueue.main, completion: @escaping ((Bool) -> Void)) {
         let operation = StorageOperation.init(key: path) {
-            let encoder = JSONEncoder()
-            var success = true
-            if let data = try? encoder.encode(object) {
+            autoreleasepool {
+                let encoder = JSONEncoder()
+                var success = true
+                if let data = try? encoder.encode(object) {
+                    do {
+                        let url = URL.init(fileURLWithPath: path)
+                        try data.write(to: url)
+                    } catch  {
+                        success = false
+                    }
+                }else {
+                    success = false
+                }
+                completionQueue.addOperation {
+                    completion(success)
+                }
+            }
+        }
+        queue.addOperation(operation)
+    }
+    
+    public func getRawData(path: String, completionQueue: OperationQueue = OperationQueue.main, completion: @escaping ((Data?) -> Void)) {
+        let operation = StorageOperation.init(key: path) {
+            autoreleasepool {
+                guard FileManager.default.fileExists(atPath: path) else {
+                    completionQueue.addOperation {
+                        completion(nil)
+                    }
+                    return;
+                }
+                
+                let data = FileManager.default.contents(atPath: path)
+                
+                completionQueue.addOperation {
+                    completion(data)
+                }
+            }
+        }
+        queue.addOperation(operation)
+    }
+    
+    public func saveRaw(data: Data, path: String, completionQueue: OperationQueue = OperationQueue.main, completion: @escaping ((Bool) -> Void)) {
+        let operation = StorageOperation.init(key: path) {
+            autoreleasepool {
+                var success = true
                 do {
                     let url = URL.init(fileURLWithPath: path)
                     try data.write(to: url)
                 } catch  {
                     success = false
                 }
-            }else {
-                success = false
-            }
-            completionQueue.addOperation {
-                completion(success)
+                completionQueue.addOperation {
+                    completion(success)
+                }
             }
         }
         queue.addOperation(operation)
