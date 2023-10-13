@@ -50,6 +50,10 @@ public extension SQLTableEntity {
       guard let data = try? JSONEncoder().encode(self) else { return nil }
       return (try? JSONSerialization.jsonObject(with: data, options: .allowFragments)).flatMap { $0 as? [String: Any] }
     }
+
+    static func codingKeys() -> [String] {
+      Mirror(reflecting: template).children.compactMap({ $0.label })
+    }
 }
 
 enum TableColonType {
