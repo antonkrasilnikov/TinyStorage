@@ -36,7 +36,7 @@ private class DatabaseOperationQueue: OperationQueue {
     }
 }
 
-public protocol SQLTableEntity: Codable {
+public protocol SQLTableEntity: Codable, Equatable {
     associatedtype Entity = Self where Entity:SQLTableEntity
     
     static func codingKeys() -> [String]
@@ -53,6 +53,10 @@ public extension SQLTableEntity {
 
     static func codingKeys() -> [String] {
       Mirror(reflecting: template).children.compactMap({ $0.label })
+    }
+
+    static func ==(lhs: Self, rhs: Self) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
