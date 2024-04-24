@@ -177,7 +177,6 @@ public class Database: SQLDatabase {
                 if let database = self.sqlDB {
                     if sqlite3_exec(database, createQuery, nil, nil, nil) != SQLITE_OK {
                         self.printLastError()
-                    }else{
                         errorBehaviour = true
                     }
                 }else{
