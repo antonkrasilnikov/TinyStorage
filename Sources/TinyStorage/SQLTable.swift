@@ -39,7 +39,6 @@ private class DatabaseOperationQueue: OperationQueue {
 public protocol SQLTableEntity: Codable, Equatable {
     associatedtype Entity = Self where Entity:SQLTableEntity
     
-    static func codingKeys() -> [String]
     static var template: Entity {get}
     var id: String {get}
     var dictionary: [String: Any]? {get}
@@ -49,10 +48,6 @@ public extension SQLTableEntity {
     var dictionary: [String: Any]? {
       guard let data = try? JSONEncoder().encode(self) else { return nil }
       return (try? JSONSerialization.jsonObject(with: data, options: .allowFragments)).flatMap { $0 as? [String: Any] }
-    }
-
-    static func codingKeys() -> [String] {
-      Mirror(reflecting: template).children.compactMap({ $0.label })
     }
 
     static func ==(lhs: Self, rhs: Self) -> Bool {
@@ -90,7 +85,7 @@ public enum SQLTableError: Error {
 open class SQLTable<T: SQLTableEntity> {
     let name: String
     weak var database: SQLDatabase?
-    let params = T.codingKeys()
+    let params: [String]
     let colons: [String : TableColonType]
     
     public init(name: String, database: SQLDatabase) throws {
@@ -102,7 +97,7 @@ open class SQLTable<T: SQLTableEntity> {
         if let encoded = try? DictionaryEncoder().encode(temlate) {
 
             var colons: [String : TableColonType] = [:]
-            
+            self.params = Array(colons.keys)
             params.forEach{
                 if let value = encoded[$0] {
                     switch value {
