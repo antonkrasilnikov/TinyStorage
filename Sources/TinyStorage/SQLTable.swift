@@ -97,7 +97,7 @@ open class SQLTable<T: SQLTableEntity> {
         if let encoded = try? DictionaryEncoder().encode(temlate) {
 
             var colons: [String : TableColonType] = [:]
-            self.params = Array(colons.keys)
+            self.params = Array(encoded.keys)
             params.forEach{
                 if let value = encoded[$0] {
                     switch value {
