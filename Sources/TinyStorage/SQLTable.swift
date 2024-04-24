@@ -510,13 +510,11 @@ open class SQLTable<T: SQLTableEntity> {
     
     private func createQueryTable() -> String {
         var str = "CREATE TABLE IF NOT EXISTS \(name) (id text primary key, "
-        
+        let keys = params.filter({ $0 == "id" })
         var index = 0
-        
-        for key in params {
-            guard key != "id" else {index += 1; continue}
+        for key in keys {
             str.append("\(formatted(key: key))" + " text")
-            if index < params.count - 1 {
+            if index < keys.count - 1 {
                 str.append(", ")
             }
             index += 1
