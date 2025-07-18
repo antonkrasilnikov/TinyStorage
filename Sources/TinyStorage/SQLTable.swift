@@ -594,7 +594,7 @@ open class SQLTable<T: SQLTableEntity> {
         
         for key in valuesDct.keys {
 
-            guard let stringValue = valuesDct[key], stringValue.count != 0 else {
+            guard let stringValue = valuesDct[key], stringValue.count != 0 || colons[key] == .string else {
                 continue
             }
             
